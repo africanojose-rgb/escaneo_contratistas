@@ -1,0 +1,6 @@
+{
+  "name": "Toronto Sentinel",
+  "description": "Sistema de gestión de seguridad privada de Toronto de Colombia. Control de contratistas, generación de carnets y sincronización de base de datos local.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["Local Storage", "ID Generation", "QR Scanning"]
+}

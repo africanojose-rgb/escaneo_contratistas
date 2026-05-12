@@ -1,0 +1,70 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-headline: "Hanken Grotesk", sans-serif;
+
+  --color-surface: #141313;
+  --color-surface-dim: #141313;
+  --color-surface-bright: #3a3939;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-container: #201f1f;
+  --color-surface-container-high: #2a2a2a;
+  --color-surface-container-highest: #353434;
+  --color-on-surface: #e5e2e1;
+  --color-on-surface-variant: #d8c1c6;
+  --color-outline: #a08b90;
+  --color-outline-variant: #534247;
+  --color-primary: #ffb4cb;
+  --color-on-primary: #5c1333;
+  --color-primary-container: #f48fb1;
+  --color-on-primary-container: #722544;
+  --color-secondary: #c6c6cb;
+  --color-on-secondary: #2e3034;
+  --color-secondary-container: #47494d;
+  --color-on-secondary-container: #b7b8bd;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-sans selection:bg-primary/30;
+  }
+  h1, h2, h3, h4, .font-headline {
+    @apply font-headline;
+  }
+  
+  /* Custom Scrollbar for better UI in dark mode */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-container-lowest;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-outline-variant/30 rounded-full hover:bg-outline-variant/50 transition-colors;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-card, #printable-card * {
+    visibility: visible;
+  }
+  #printable-card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+  nav, header, button, .no-print {
+    display: none !important;
+  }
+}
