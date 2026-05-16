@@ -11,6 +11,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ onAction }: DashboardProps) {
+  const profile = useLiveQuery(() => db.userProfile.toCollection().first());
   const recentMovements = useLiveQuery(() => 
     db.movements.orderBy('timestamp').reverse().limit(5).toArray()
   );
@@ -47,6 +48,12 @@ export default function Dashboard({ onAction }: DashboardProps) {
 
   return (
     <div className="space-y-6 pb-4">
+      {/* Welcome Header */}
+      <div className="mt-2 text-on-surface">
+        <h2 className="text-xl font-headline font-bold">¡Buen día, {profile?.name?.split(' ')[0] || 'Oficial'}!</h2>
+        <p className="text-xs text-on-surface-variant font-semibold uppercase tracking-wider">Módulo de Vigilancia Activo</p>
+      </div>
+
       {/* Status Banner */}
       <section className="mt-2">
         <div className="bg-primary-container text-on-primary-container rounded-2xl p-6 flex items-center justify-between shadow-xl">

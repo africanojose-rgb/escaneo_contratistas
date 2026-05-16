@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
-import { BarChart3, FileDown, FileSpreadsheet, Share2, Users, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { BarChart3, FileDown, FileSpreadsheet, Share2, Users, ArrowUpCircle, ArrowDownCircle, Printer } from 'lucide-react';
+import IDCard from '../components/IDCard';
 
 export default function Reportes() {
+  const [isPrintingAll, setIsPrintingAll] = useState(false);
+  const contractors = useLiveQuery(() => db.contractors.toArray());
   const stats = useLiveQuery(async () => {
     const movements = await db.movements.toArray();
-    const contractors = await db.contractors.toArray();
+    const contractorsData = await db.contractors.toArray();
     
     const today = new Date().setHours(0,0,0,0);
     const entrancesToday = movements.filter(m => m.type === 'ENTRADA' && m.timestamp >= today).length;
@@ -17,14 +20,33 @@ export default function Reportes() {
       entrancesToday,
       exitsToday,
       uniqueContractors,
-      totalContractors: contractors.length
+      totalContractors: contractorsData.length
     };
   });
+
+  const handlePrintAll = () => {
+    setIsPrintingAll(true);
+    setTimeout(() => {
+      window.print();
+      setIsPrintingAll(false);
+    }, 500);
+  };
 
   if (!stats) return null;
 
   return (
     <div className="space-y-6 pb-24">
+      {/* Hidden printable area for all cards */}
+      {isPrintingAll && contractors && (
+        <div id="printable-area" className="hidden">
+          {contractors.map(c => (
+            <div key={c.uuid} className="print-card-wrapper">
+              <IDCard contractor={c} />
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         <BarChart3 className="text-primary" />
         <h2 className="font-headline text-2xl font-bold">Reportes y Estadísticas</h2>
@@ -79,8 +101,11 @@ export default function Reportes() {
 
       {/* Export Options */}
       <section className="grid grid-cols-1 gap-3">
-        <button className="h-14 bg-primary text-on-primary rounded-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest text-sm shadow-lg overflow-hidden relative group">
-          <FileDown size={20} /> EXPORTAR REPORTE PDF
+        <button 
+           onClick={handlePrintAll}
+           className="h-14 bg-primary text-on-primary rounded-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest text-sm shadow-lg overflow-hidden relative group"
+        >
+          <Printer size={20} /> IMPRIMIR TODOS LOS CARNETS
           <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform" />
         </button>
         <button className="h-14 border-2 border-primary text-primary rounded-xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest text-sm hover:bg-primary/10 transition-colors">

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../db/database';
+import { db, type Contractor } from '../db/database';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Search, Filter, ChevronRight, LogIn, LogOut, User, Calendar, Trash2, History } from 'lucide-react';
+import { Search, Filter, ChevronRight, LogIn, LogOut, User, Calendar, Trash2, History, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import IDCard from '../components/IDCard';
 
 export default function Historial() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'TODO' | 'ENTRADA' | 'SALIDA'>('TODO');
+  const [printContractor, setPrintContractor] = useState<Contractor | null>(null);
 
   const movements = useLiveQuery(async () => {
     let query = db.movements.orderBy('timestamp').reverse();
@@ -26,8 +28,21 @@ export default function Historial() {
     });
   }, [searchTerm, filterType]);
 
+  const handlePrintCard = (contractor: Contractor) => {
+    setPrintContractor(contractor);
+    setTimeout(() => {
+      window.print();
+      setPrintContractor(null);
+    }, 100);
+  };
+
   return (
     <div className="space-y-6 pb-24">
+      {/* Hidden container for single card printing */}
+      <div id="printable-card" className="hidden">
+        {printContractor && <IDCard contractor={printContractor} />}
+      </div>
+
       <div className="flex items-center gap-2">
         <History className="text-primary" />
         <h2 className="font-headline text-2xl font-bold">Bitácora de Movimientos</h2>
@@ -104,9 +119,19 @@ export default function Historial() {
                 </div>
               </div>
 
-              <div className="text-right">
+              <div className="text-right flex flex-col items-end gap-2">
                 <p className="text-sm font-black text-on-surface">{format(move.timestamp, "HH:mm")}</p>
-                <ChevronRight size={18} className="text-outline group-hover:translate-x-1 transition-transform ml-auto" />
+                <div className="flex items-center gap-3">
+                   {move.contractor && (
+                     <button 
+                       onClick={() => handlePrintCard(move.contractor!)}
+                       className="p-1.5 bg-surface-container-highest rounded-lg text-primary hover:bg-primary/20 transition-colors"
+                     >
+                       <Printer size={16} />
+                     </button>
+                   )}
+                   <ChevronRight size={18} className="text-outline group-hover:translate-x-1 transition-transform" />
+                </div>
               </div>
             </div>
           ))

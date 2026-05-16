@@ -26,19 +26,28 @@ export default function Scanner() {
       const html5QrCode = new Html5Qrcode("reader");
       scannerRef.current = html5QrCode;
       
-      await html5QrCode.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 }
-        },
-        (decodedText) => {
-          handleScanSuccess(decodedText);
-        },
-        (errorMessage) => {
-          // parse error, ignore
-        }
-      );
+      const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 }
+      };
+
+      // Try environment first, then any available camera
+      try {
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          config,
+          (decodedText) => handleScanSuccess(decodedText),
+          () => {}
+        );
+      } catch (e) {
+        console.warn("Environment camera not found, trying default camera", e);
+        await html5QrCode.start(
+          { facingMode: "user" },
+          config,
+          (decodedText) => handleScanSuccess(decodedText),
+          () => {}
+        );
+      }
     } catch (err) {
       console.error(err);
       setError("No se pudo acceder a la cámara. Verifique los permisos.");

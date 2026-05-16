@@ -1,6 +1,8 @@
 import React from 'react';
-import { Shield, Home, UserPlus, History, BarChart3, Settings } from 'lucide-react';
+import { Shield, Home, UserPlus, History, BarChart3, Settings, User } from 'lucide-react';
 import { motion } from 'motion/react';
+import { db } from '../db/database';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 interface NavProps {
   activeTab: string;
@@ -50,18 +52,24 @@ export default function Navigation({ activeTab, onTabChange }: NavProps) {
 }
 
 export function Header() {
+  const profile = useLiveQuery(() => db.userProfile.toCollection().first());
+
   return (
     <header className="fixed top-0 w-full h-16 bg-surface-container-high border-b border-outline-variant flex items-center justify-between px-6 z-50">
       <div className="flex items-center gap-2">
         <Shield size={28} className="text-primary fill-primary/10" />
         <h1 className="font-headline text-xl font-bold tracking-tight text-primary">Toronto Sentinel</h1>
       </div>
-      <div className="w-10 h-10 rounded-full border border-outline-variant overflow-hidden">
-         <img 
-            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&h=100&auto=format&fit=crop" 
-            alt="Profile" 
-            className="w-full h-full object-cover"
-         />
+      <div className="w-10 h-10 rounded-full border border-outline-variant overflow-hidden bg-surface-container-high flex items-center justify-center">
+         {profile?.photo ? (
+           <img 
+              src={profile.photo} 
+              alt="Profile" 
+              className="w-full h-full object-cover"
+           />
+         ) : (
+           <User size={20} className="text-on-surface-variant opacity-30" />
+         )}
       </div>
     </header>
   );

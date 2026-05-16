@@ -19,15 +19,24 @@ export interface Movement {
   gate: string;
 }
 
+export interface UserProfile {
+  id?: number;
+  name: string;
+  position: string;
+  photo?: string;
+}
+
 export class TorontoDatabase extends Dexie {
   contractors!: Table<Contractor>;
   movements!: Table<Movement>;
+  userProfile!: Table<UserProfile>;
 
   constructor() {
     super('TorontoSentinelDB');
-    this.version(1).stores({
+    this.version(2).stores({
       contractors: '++id, uuid, fullName, company',
-      movements: '++id, contractorUuid, type, timestamp, gate'
+      movements: '++id, contractorUuid, type, timestamp, gate',
+      userProfile: '++id'
     });
   }
 }

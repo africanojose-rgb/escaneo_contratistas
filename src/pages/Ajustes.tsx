@@ -1,11 +1,52 @@
-import React, { useRef, useState } from 'react';
-import { db } from '../db/database';
-import { Share2, Bluetooth, Download, Upload, Shield, Bell, Smartphone, User, Database, CheckCircle2, AlertTriangle } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { db, type UserProfile } from '../db/database';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { Share2, Bluetooth, Download, Upload, Shield, Bell, Smartphone, User, Database, CheckCircle2, AlertTriangle, Camera, Save, Edit2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Ajustes() {
   const [syncStatus, setSyncStatus] = useState<'idle' | 'exporting' | 'importing' | 'success' | 'error'>('idle');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const profile = useLiveQuery(() => db.userProfile.toCollection().first());
+  
+  const [profileForm, setProfileForm] = useState<UserProfile>({
+    name: '',
+    position: '',
+    photo: ''
+  });
+
+  useEffect(() => {
+    if (profile) {
+      setProfileForm(profile);
+    }
+  }, [profile]);
+
+  const handleSaveProfile = async () => {
+    try {
+      if (profile?.id) {
+        await db.userProfile.update(profile.id, profileForm);
+      } else {
+        await db.userProfile.add(profileForm);
+      }
+      setIsEditingProfile(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileForm(prev => ({ ...prev, photo: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleExport = async () => {
     setSyncStatus('exporting');
@@ -101,16 +142,67 @@ export default function Ajustes() {
       </div>
 
       {/* Profile Section */}
-      <section className="bg-surface-container-low p-5 rounded-2xl border border-outline-variant/30 flex items-center gap-4">
-        <div className="w-16 h-16 rounded-full border-2 border-primary overflow-hidden">
-          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&h=150&auto=format&fit=crop" alt="User" />
-        </div>
-        <div className="flex-1">
-          <h3 className="font-bold">Supervisor Carlos Ruiz</h3>
-          <p className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Planta Principal - Sector A</p>
-        </div>
-        <div className="bg-primary/20 text-primary p-2 rounded-lg">
-           <Shield size={20} />
+      <section className="bg-surface-container-low p-5 rounded-2xl border border-outline-variant/30 space-y-4">
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <div className="w-16 h-16 rounded-full border-2 border-primary overflow-hidden bg-surface-container-high flex items-center justify-center">
+              {profileForm.photo ? (
+                <img src={profileForm.photo} alt="User" className="w-full h-full object-cover" />
+              ) : (
+                <User size={32} className="text-on-surface-variant opacity-30" />
+              )}
+            </div>
+            {isEditingProfile && (
+              <button 
+                onClick={() => photoInputRef.current?.click()}
+                className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Camera size={20} className="text-white" />
+              </button>
+            )}
+            <input 
+              type="file" 
+              ref={photoInputRef} 
+              className="hidden" 
+              accept="image/*" 
+              onChange={handlePhotoChange}
+            />
+          </div>
+          
+          <div className="flex-1">
+            {isEditingProfile ? (
+              <div className="space-y-2">
+                <input 
+                  value={profileForm.name}
+                  onChange={e => setProfileForm(p => ({ ...p, name: e.target.value }))}
+                  placeholder="Nombre"
+                  className="w-full bg-surface-container-high border border-outline-variant rounded-lg px-3 py-1 text-sm outline-none focus:border-primary"
+                />
+                <input 
+                  value={profileForm.position}
+                  onChange={e => setProfileForm(p => ({ ...p, position: e.target.value }))}
+                  placeholder="Cargo"
+                  className="w-full bg-surface-container-high border border-outline-variant rounded-lg px-3 py-1 text-xs outline-none focus:border-primary"
+                />
+              </div>
+            ) : (
+              <>
+                <h3 className="font-bold">{profile?.name || 'Oficial de Seguridad'}</h3>
+                <p className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">
+                  {profile?.position || 'Personal de Turno'}
+                </p>
+              </>
+            )}
+          </div>
+
+          <button 
+            onClick={() => isEditingProfile ? handleSaveProfile() : setIsEditingProfile(true)}
+            className={`p-2 rounded-lg transition-colors ${
+              isEditingProfile ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'
+            }`}
+          >
+            {isEditingProfile ? <Save size={20} /> : <Edit2 size={20} />}
+          </button>
         </div>
       </section>
 
